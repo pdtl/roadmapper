@@ -269,9 +269,35 @@
     /* Timeline */
     .timeline-wrap {
       flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      --split-pct: 50;
+    }
+
+    .timeline-section {
+      flex: 0 0 calc(var(--split-pct) * 1%);
+      min-height: 120px;
       overflow: auto;
       display: flex;
       flex-direction: column;
+    }
+
+    .splitter {
+      flex: 0 0 6px;
+      background: var(--border);
+      cursor: row-resize;
+      user-select: none;
+      transition: background 0.15s;
+    }
+
+    .splitter:hover {
+      background: var(--accent);
+    }
+
+    .splitter:active {
+      background: var(--accent);
     }
 
     .timeline {
@@ -491,6 +517,24 @@
       border-color: var(--accent);
     }
 
+    .form-row textarea {
+      width: 100%;
+      min-height: 80px;
+      padding: 0.5rem 0.75rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.9rem;
+      font-family: inherit;
+      resize: vertical;
+    }
+
+    .form-row textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
     .form-tags {
       display: flex;
       flex-direction: column;
@@ -696,6 +740,77 @@
       color: var(--text);
       box-shadow: 0 1px 2px rgba(0,0,0,0.1);
     }
+
+    /* Events table (below swimlanes) */
+    .events-table-wrap {
+      flex: 1;
+      min-height: 0;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      overflow: auto;
+    }
+
+    .events-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    .events-table th {
+      text-align: left;
+      padding: 0.6rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .events-table td {
+      padding: 0.6rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      vertical-align: top;
+    }
+
+    .events-table tbody tr:hover {
+      background: rgba(129, 140, 248, 0.06);
+    }
+
+    .events-table .event-title-cell {
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--accent);
+    }
+
+    .events-table .event-title-cell:hover {
+      text-decoration: underline;
+    }
+
+    .table-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .table-pills .pill {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.8rem;
+      color: var(--text);
+    }
+
+    .events-table .notes-cell {
+      max-width: 280px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
   </style>
 </head>
 <body>
@@ -733,9 +848,25 @@
         </div>
         <button type="button" class="btn btn-ghost reset-filters-btn" id="reset-filters-btn">Reset filters</button>
       </aside>
-      <div class="timeline-wrap">
-        <div class="timeline" id="timeline">
-          <div class="timeline-grid" id="timeline-grid"></div>
+      <div class="timeline-wrap" id="timeline-wrap">
+        <div class="timeline-section" id="timeline-section">
+          <div class="timeline" id="timeline">
+            <div class="timeline-grid" id="timeline-grid"></div>
+          </div>
+        </div>
+        <div class="splitter" id="splitter" role="separator" aria-valuenow="50" aria-valuemin="15" aria-valuemax="85" aria-label="Resize timeline and table"></div>
+        <div class="events-table-wrap">
+          <table class="events-table">
+            <thead>
+              <tr>
+                <th>Event</th>
+                <th>Date</th>
+                <th>Tags</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody id="events-table-body"></tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -770,6 +901,10 @@
           <label>Categories & tags</label>
           <div id="event-tags-form"></div>
         </div>
+        <div class="form-row">
+          <label for="event-notes">Notes</label>
+          <textarea id="event-notes" placeholder="Optional notes"></textarea>
+        </div>
         <div class="modal-actions">
           <button type="button" class="btn btn-ghost" id="modal-cancel">Cancel</button>
           <button type="submit" class="btn" id="modal-save">Save</button>
@@ -796,7 +931,8 @@
     const resetFiltersBtn = document.getElementById("reset-filters-btn");
     const timelineGrid = document.getElementById("timeline-grid");
     const timelineEl = document.getElementById("timeline");
-    const timelineWrap = document.querySelector(".timeline-wrap");
+    const timelineWrap = document.getElementById("timeline-wrap");
+    const splitterEl = document.getElementById("splitter");
     const LABEL_COL_WIDTH = 160;
     const addEventBtn = document.getElementById("add-event-btn");
     const editCategoriesBtn = document.getElementById("edit-categories-btn");
@@ -809,7 +945,9 @@
     const eventIdInput = document.getElementById("event-id");
     const eventTitleInput = document.getElementById("event-title");
     const eventDateInput = document.getElementById("event-date");
+    const eventNotesInput = document.getElementById("event-notes");
     const eventTagsForm = document.getElementById("event-tags-form");
+    const eventsTableBody = document.getElementById("events-table-body");
     const modalTitle = document.getElementById("modal-title");
     const modalCancel = document.getElementById("modal-cancel");
     const themeLightBtn = document.getElementById("theme-light");
@@ -1075,6 +1213,7 @@
         empty.className = "empty-state";
         empty.textContent = "No tags in this category. Add categories and tags in categories.yaml.";
         timelineGrid.appendChild(empty);
+        renderEventsTable();
         return;
       }
 
@@ -1126,12 +1265,47 @@
         todayLine.style.left = `${lineLeft}px`;
         timelineEl.appendChild(todayLine);
       }
+
+      renderEventsTable();
+    }
+
+    /** Table uses same filtered events as timeline; swimlane group-by does not affect it. */
+    function renderEventsTable() {
+      const events = filteredEvents().slice().sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+      eventsTableBody.innerHTML = "";
+      events.forEach(evt => {
+        const tagValues = (evt.tags && Object.values(evt.tags)) ? Object.values(evt.tags).flat() : [];
+        const tr = document.createElement("tr");
+        const titleCell = document.createElement("td");
+        titleCell.className = "event-title-cell";
+        titleCell.textContent = evt.title;
+        titleCell.addEventListener("click", () => openEditEvent(evt));
+        tr.appendChild(titleCell);
+        tr.appendChild(document.createElement("td")).textContent = evt.date || "";
+        const tagsCell = document.createElement("td");
+        const tagPills = document.createElement("div");
+        tagPills.className = "table-pills";
+        tagValues.forEach(tag => {
+          const pill = document.createElement("span");
+          pill.className = "pill";
+          pill.textContent = tag;
+          tagPills.appendChild(pill);
+        });
+        tagsCell.appendChild(tagPills);
+        tr.appendChild(tagsCell);
+        const notesCell = document.createElement("td");
+        notesCell.className = "notes-cell";
+        notesCell.textContent = evt.notes || "";
+        tr.appendChild(notesCell);
+        eventsTableBody.appendChild(tr);
+      });
     }
 
     function openAddEvent() {
       eventIdInput.value = "";
       eventTitleInput.value = "";
       eventDateInput.value = new Date().toISOString().slice(0, 10);
+      eventNotesInput.value = "";
       modalTitle.textContent = "New event";
       renderEventTagsForm({});
       eventModal.classList.add("open");
@@ -1141,6 +1315,7 @@
       eventIdInput.value = evt.id;
       eventTitleInput.value = evt.title;
       eventDateInput.value = evt.date;
+      eventNotesInput.value = evt.notes || "";
       modalTitle.textContent = "Edit event";
       renderEventTagsForm(evt.tags || {});
       eventModal.classList.add("open");
@@ -1381,15 +1556,16 @@
       const id = eventIdInput.value.trim();
       const title = eventTitleInput.value.trim();
       const date = eventDateInput.value;
+      const notes = (eventNotesInput.value || "").trim();
       const tags = getFormTags();
       let events = [...state.events];
       if (id) {
         const idx = events.findIndex(evt => evt.id === id);
         if (idx >= 0) {
-          events[idx] = { ...events[idx], title, date, tags };
+          events[idx] = { ...events[idx], title, date, tags, notes: notes || undefined };
         }
       } else {
-        events.push({ id: "evt-" + Date.now(), title, date, tags });
+        events.push({ id: "evt-" + Date.now(), title, date, tags, notes: notes || undefined });
       }
       await saveEvents(events);
       eventModal.classList.remove("open");
@@ -1471,6 +1647,27 @@
       resizeTimeout = setTimeout(renderTimeline, 100);
     });
 
+    function setupSplitter() {
+      const MIN_PCT = 15;
+      const MAX_PCT = 85;
+      splitterEl.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        function move(ev) {
+          const rect = timelineWrap.getBoundingClientRect();
+          const pct = ((ev.clientY - rect.top) / rect.height) * 100;
+          const clamped = Math.max(MIN_PCT, Math.min(MAX_PCT, pct));
+          timelineWrap.style.setProperty("--split-pct", String(clamped));
+          splitterEl.setAttribute("aria-valuenow", Math.round(clamped));
+        }
+        function up() {
+          document.removeEventListener("mousemove", move);
+          document.removeEventListener("mouseup", up);
+        }
+        document.addEventListener("mousemove", move);
+        document.addEventListener("mouseup", up);
+      });
+    }
+
     (async function init() {
       await loadConfig();
       applyTheme(state.theme);
@@ -1478,6 +1675,7 @@
       await loadEvents();
       renderCategorySelect();
       renderFilters();
+      setupSplitter();
       renderTimeline();
     })();
   </script>
