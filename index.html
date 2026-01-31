@@ -19,7 +19,7 @@
       --teal: #2dd4bf;
       --amber: #fbbf24;
       --violet: #a78bfa;
-      --lane-height: 52px;
+      --lane-height: 80px;
       --day-width: 28px;
       --header-height: 120px;
       --bg-gradient: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(129, 140, 248, 0.15), transparent);
@@ -216,6 +216,56 @@
       box-shadow: 0 2px 6px rgba(45, 212, 191, 0.35);
     }
 
+    .date-filter-inputs {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .date-filter-inputs input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+    }
+
+    .date-filter-inputs input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .date-range-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .btn-date-range {
+      padding: 0.3rem 0.5rem;
+      font-size: 0.75rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+
+    .btn-date-range:hover {
+      border-color: var(--accent);
+      color: var(--text);
+      background: rgba(129, 140, 248, 0.08);
+    }
+
+    .reset-filters-btn {
+      width: 100%;
+      font-size: 0.85rem;
+      margin-top: 0.25rem;
+    }
+
     /* Timeline */
     .timeline-wrap {
       flex: 1;
@@ -226,8 +276,21 @@
 
     .timeline {
       flex: 1;
-      min-width: max-content;
+      min-width: 0;
       position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .today-line {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: var(--accent);
+      opacity: 0.6;
+      pointer-events: none;
+      z-index: 1;
     }
 
     .timeline-grid {
@@ -248,11 +311,11 @@
     }
 
     .timeline-label-col {
-      width: 140px;
-      min-width: 140px;
+      width: 160px;
+      min-width: 160px;
       flex-shrink: 0;
       border-right: 1px solid var(--border);
-      padding: 0.5rem;
+      padding: 0.6rem 0.75rem;
       font-size: 0.75rem;
       color: var(--text-muted);
       text-transform: uppercase;
@@ -265,8 +328,8 @@
     }
 
     .timeline-date {
-      flex: 0 0 var(--day-width);
-      width: var(--day-width);
+      flex: 1;
+      min-width: 0;
       font-size: 0.7rem;
       color: var(--text-muted);
       text-align: center;
@@ -280,12 +343,16 @@
       position: relative;
     }
 
+    .swimlane.has-overlap {
+      /* min-height set inline per lane when multiple rows needed */
+    }
+
     .swimlane-label {
-      width: 140px;
-      min-width: 140px;
+      width: 160px;
+      min-width: 160px;
       flex-shrink: 0;
-      padding: 0.5rem 0.75rem;
-      font-size: 0.85rem;
+      padding: 0.6rem 0.75rem;
+      font-size: 0.9rem;
       border-right: 1px solid var(--border);
       background: var(--surface);
       color: var(--text);
@@ -305,19 +372,28 @@
     }
 
     .event-block {
+      --block-size: calc(var(--lane-height) - 16px);
       position: absolute;
-      top: 6px;
-      height: calc(var(--lane-height) - 12px);
-      min-width: 80px;
-      max-width: 180px;
-      padding: 0.35rem 0.5rem;
+      top: 8px;
+      left: 0;
+      width: var(--block-size);
+      height: var(--block-size);
+      min-width: var(--block-size);
+      max-width: var(--block-size);
+      padding: 0.35rem;
       color: #fff;
-      border-radius: 8px;
-      font-size: 0.8rem;
+      border-radius: 14px;
+      font-size: 0.75rem;
       font-weight: 500;
       overflow: hidden;
       text-overflow: ellipsis;
-      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      line-height: 1.2;
+      white-space: normal;
+      word-break: break-word;
       cursor: pointer;
       border: none;
       transition: transform 0.15s, box-shadow 0.15s;
@@ -347,6 +423,11 @@
     .event-block.color-accent {
       background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%);
       box-shadow: 0 2px 8px rgba(129, 140, 248, 0.4);
+    }
+
+    .event-block.compact {
+      font-size: 0.65rem;
+      padding: 0.25rem;
     }
 
     /* Modal */
@@ -521,6 +602,19 @@
           <select id="category-select"></select>
         </div>
         <div class="filters" id="filters"></div>
+        <div class="sidebar-group date-filters">
+          <label>Date range</label>
+          <div class="date-filter-inputs">
+            <input type="date" id="date-filter-start" placeholder="Start" aria-label="Filter from date" />
+            <input type="date" id="date-filter-end" placeholder="End" aria-label="Filter to date" />
+          </div>
+          <div class="date-range-buttons">
+            <button type="button" class="btn-date-range" data-months="1">Next month</button>
+            <button type="button" class="btn-date-range" data-months="6">Next 6 months</button>
+            <button type="button" class="btn-date-range" data-months="12">Next 12 months</button>
+          </div>
+        </div>
+        <button type="button" class="btn btn-ghost reset-filters-btn" id="reset-filters-btn">Reset filters</button>
       </aside>
       <div class="timeline-wrap">
         <div class="timeline" id="timeline">
@@ -561,12 +655,20 @@
       events: [],
       swimlaneCategory: null,
       activeFilters: {},
+      dateFilterStart: null,
+      dateFilterEnd: null,
       theme: "dark"
     };
 
     const categorySelect = document.getElementById("category-select");
     const filtersEl = document.getElementById("filters");
+    const dateFilterStartEl = document.getElementById("date-filter-start");
+    const dateFilterEndEl = document.getElementById("date-filter-end");
+    const resetFiltersBtn = document.getElementById("reset-filters-btn");
     const timelineGrid = document.getElementById("timeline-grid");
+    const timelineEl = document.getElementById("timeline");
+    const timelineWrap = document.querySelector(".timeline-wrap");
+    const LABEL_COL_WIDTH = 160;
     const addEventBtn = document.getElementById("add-event-btn");
     const eventModal = document.getElementById("event-modal");
     const eventForm = document.getElementById("event-form");
@@ -623,17 +725,26 @@
     }
 
     function filteredEvents() {
-      const hasActive = Object.values(state.activeFilters).some(arr => arr && arr.length > 0);
-      if (!hasActive) return state.events;
-      return state.events.filter(evt => {
-        for (const [cat, selectedTags] of Object.entries(state.activeFilters)) {
-          if (!selectedTags || selectedTags.length === 0) continue;
-          const evtTags = (evt.tags && evt.tags[cat]) || [];
-          const match = selectedTags.some(t => evtTags.includes(t));
-          if (!match) return false;
-        }
-        return true;
-      });
+      let list = state.events;
+      const hasTagFilter = Object.values(state.activeFilters).some(arr => arr && arr.length > 0);
+      if (hasTagFilter) {
+        list = list.filter(evt => {
+          for (const [cat, selectedTags] of Object.entries(state.activeFilters)) {
+            if (!selectedTags || selectedTags.length === 0) continue;
+            const evtTags = (evt.tags && evt.tags[cat]) || [];
+            const match = selectedTags.some(t => evtTags.includes(t));
+            if (!match) return false;
+          }
+          return true;
+        });
+      }
+      if (state.dateFilterStart) {
+        list = list.filter(evt => evt.date >= state.dateFilterStart);
+      }
+      if (state.dateFilterEnd) {
+        list = list.filter(evt => evt.date <= state.dateFilterEnd);
+      }
+      return list;
     }
 
     function getDateRange(events) {
@@ -715,6 +826,84 @@
       });
     }
 
+    const OVERLAP_GAP = 4;
+    const ROW_GAP = 8;
+    const LANE_PADDING = 8;
+    const VERTICAL_STAGGER = 12;
+
+    function getBlockSizePx() {
+      const laneHeight = parseInt(
+        getComputedStyle(document.documentElement).getPropertyValue("--lane-height").trim(),
+        10
+      ) || 80;
+      return laneHeight - 16;
+    }
+
+    function getBaseLaneHeightPx() {
+      return parseInt(
+        getComputedStyle(document.documentElement).getPropertyValue("--lane-height").trim(),
+        10
+      ) || 80;
+    }
+
+    /** Lay out events in a lane so overlapping dates get horizontal offset and/or new rows. */
+    function layoutEventsInLane(laneEvents, range, trackWidth, blockSize) {
+      if (!laneEvents.length) return { placements: [], laneHeight: null };
+      const items = laneEvents.map(evt => ({
+        evt,
+        pos: dateToOffset(evt.date, range)
+      }));
+      items.sort((a, b) => a.pos - b.pos);
+
+      const usableTrack = Math.max(0, trackWidth - blockSize);
+      let hasOverlap = false;
+      for (let i = 1; i < items.length; i++) {
+        const prevLeft = items[i - 1].pos * usableTrack;
+        const currIdeal = items[i].pos * usableTrack;
+        if (currIdeal < prevLeft + blockSize + OVERLAP_GAP) {
+          hasOverlap = true;
+          break;
+        }
+      }
+
+      const size = hasOverlap ? Math.max(36, Math.floor(blockSize * 0.8)) : blockSize;
+      const gap = OVERLAP_GAP;
+      const placements = [];
+      let rowRight = 0;
+      let rowTop = LANE_PADDING;
+      let indexInRow = 0;
+      const usableWithSize = Math.max(0, trackWidth - size);
+      const baseLaneHeight = getBaseLaneHeightPx();
+
+      for (let i = 0; i < items.length; i++) {
+        const idealLeft = items[i].pos * usableWithSize;
+        let left = idealLeft;
+        if (left < rowRight) left = rowRight + gap;
+        if (left + size > trackWidth) {
+          rowTop += size + (indexInRow > 0 ? indexInRow * VERTICAL_STAGGER : 0) + ROW_GAP;
+          rowRight = 0;
+          indexInRow = 0;
+          left = Math.min(idealLeft, trackWidth - size);
+          if (left < 0) left = 0;
+        }
+        const top = hasOverlap ? rowTop + indexInRow * VERTICAL_STAGGER : rowTop;
+        rowRight = left + size + gap;
+        placements.push({
+          evt: items[i].evt,
+          left,
+          top,
+          width: size,
+          height: size,
+          compact: hasOverlap
+        });
+        indexInRow++;
+      }
+
+      const contentHeight = rowTop + size + (indexInRow > 0 ? (indexInRow - 1) * VERTICAL_STAGGER : 0) + LANE_PADDING;
+      const laneHeight = hasOverlap ? Math.max(baseLaneHeight, contentHeight) : contentHeight;
+      return { placements, laneHeight, hasOverlap };
+    }
+
     function renderTimeline() {
       const events = filteredEvents();
       const range = getDateRange(events);
@@ -722,11 +911,13 @@
       const tags = (state.categories[cat] || []);
       const dayMs = 24 * 60 * 60 * 1000;
       const totalDays = Math.ceil((range.end - range.start) / dayMs);
-      const dayWidth = 28;
-      const trackWidth = totalDays * dayWidth;
-      const weekWidth = 7 * dayWidth;
+      const numWeeks = Math.max(1, Math.floor(totalDays / 7) + 1);
+      const trackWidth = Math.max(200, (timelineWrap && timelineWrap.clientWidth) ? timelineWrap.clientWidth - LABEL_COL_WIDTH : 600);
+      const blockSize = getBlockSizePx();
 
       timelineGrid.innerHTML = "";
+      const existingTodayLine = timelineEl.querySelector(".today-line");
+      if (existingTodayLine) existingTodayLine.remove();
 
       const header = document.createElement("div");
       header.className = "timeline-header";
@@ -739,8 +930,6 @@
         d.setDate(d.getDate() + i);
         const span = document.createElement("div");
         span.className = "timeline-date";
-        span.style.width = `${weekWidth}px`;
-        span.style.minWidth = `${weekWidth}px`;
         span.textContent = `${d.getMonth() + 1}/${d.getDate()}`;
         datesDiv.appendChild(span);
       }
@@ -758,27 +947,51 @@
       tags.forEach(tag => {
         const lane = document.createElement("div");
         lane.className = "swimlane";
+        const laneEvents = events.filter(evt => (evt.tags && evt.tags[cat] || []).includes(tag));
+        const { placements, laneHeight, hasOverlap } = layoutEventsInLane(laneEvents, range, trackWidth, blockSize);
+
         lane.innerHTML = `
           <div class="swimlane-label">${tag}</div>
           <div class="swimlane-track" style="width: ${trackWidth}px;"></div>
         `;
+        if (hasOverlap && laneHeight != null) {
+          lane.classList.add("has-overlap");
+          lane.style.minHeight = `${laneHeight}px`;
+        }
         const track = lane.querySelector(".swimlane-track");
-        const laneEvents = events.filter(evt => (evt.tags && evt.tags[cat] || []).includes(tag));
-        laneEvents.forEach(evt => {
-          const pos = dateToOffset(evt.date, range);
-          const left = pos * (trackWidth - 90);
+
+        placements.forEach(({ evt, left, top, width, height, compact }) => {
           const block = document.createElement("div");
           const colors = ["color-violet", "color-teal", "color-coral", "color-amber", "color-accent"];
           const colorIdx = Math.abs((evt.id || "").split("").reduce((a, c) => ((a << 5) - a) + c.charCodeAt(0), 0)) % colors.length;
-          block.className = "event-block " + colors[colorIdx];
+          block.className = "event-block " + colors[colorIdx] + (compact ? " compact" : "");
           block.textContent = evt.title;
           block.style.left = `${left}px`;
+          block.style.top = `${top}px`;
+          block.style.width = `${width}px`;
+          block.style.height = `${height}px`;
+          block.style.minWidth = `${width}px`;
+          block.style.maxWidth = `${width}px`;
           block.title = `${evt.title} – ${evt.date}`;
           block.addEventListener("click", () => openEditEvent(evt));
           track.appendChild(block);
         });
         timelineGrid.appendChild(lane);
       });
+
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const rangeStart = range.start.getTime();
+      const rangeEnd = range.end.getTime();
+      const todayMs = new Date(todayStr).getTime();
+      if (todayMs >= rangeStart && todayMs <= rangeEnd) {
+        const pos = dateToOffset(todayStr, range);
+        const lineLeft = LABEL_COL_WIDTH + pos * trackWidth;
+        const todayLine = document.createElement("div");
+        todayLine.className = "today-line";
+        todayLine.setAttribute("aria-hidden", "true");
+        todayLine.style.left = `${lineLeft}px`;
+        timelineEl.appendChild(todayLine);
+      }
     }
 
     function openAddEvent() {
@@ -866,6 +1079,41 @@
       renderTimeline();
     });
 
+    function applyDateFilterFromInputs() {
+      state.dateFilterStart = dateFilterStartEl.value || null;
+      state.dateFilterEnd = dateFilterEndEl.value || null;
+      renderTimeline();
+    }
+
+    function setDateRangeNextMonths(months) {
+      const start = new Date();
+      const end = new Date();
+      end.setMonth(end.getMonth() + months);
+      const startStr = start.toISOString().slice(0, 10);
+      const endStr = end.toISOString().slice(0, 10);
+      dateFilterStartEl.value = startStr;
+      dateFilterEndEl.value = endStr;
+      state.dateFilterStart = startStr;
+      state.dateFilterEnd = endStr;
+      renderTimeline();
+    }
+
+    dateFilterStartEl.addEventListener("change", applyDateFilterFromInputs);
+    dateFilterEndEl.addEventListener("change", applyDateFilterFromInputs);
+    document.querySelectorAll(".btn-date-range").forEach(btn => {
+      btn.addEventListener("click", () => setDateRangeNextMonths(parseInt(btn.dataset.months, 10)));
+    });
+
+    resetFiltersBtn.addEventListener("click", () => {
+      state.activeFilters = {};
+      state.dateFilterStart = null;
+      state.dateFilterEnd = null;
+      dateFilterStartEl.value = "";
+      dateFilterEndEl.value = "";
+      renderFilters();
+      renderTimeline();
+    });
+
     addEventBtn.addEventListener("click", openAddEvent);
 
     themeLightBtn.addEventListener("click", async () => {
@@ -885,6 +1133,12 @@
       } catch {
         await saveConfig({ theme: "dark" });
       }
+    });
+
+    let resizeTimeout;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(renderTimeline, 100);
     });
 
     (async function init() {

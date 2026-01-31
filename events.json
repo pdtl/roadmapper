@@ -64,5 +64,21 @@
         "High"
       ]
     }
+  },
+  {
+    "id": "evt-1769821958248",
+    "title": "Test Event",
+    "date": "2026-01-23",
+    "tags": {
+      "Project": [
+        "Alpha"
+      ],
+      "Status": [
+        "Not Started"
+      ],
+      "Priority": [
+        "Medium"
+      ]
+    }
   }
 ]
