@@ -1,0 +1,68 @@
+[
+  {
+    "id": "evt-1",
+    "title": "Kickoff meeting",
+    "date": "2026-01-15",
+    "tags": {
+      "Project": [
+        "Alpha"
+      ],
+      "Status": [
+        "Done"
+      ],
+      "Priority": [
+        "High"
+      ]
+    }
+  },
+  {
+    "id": "evt-2",
+    "title": "Design review",
+    "date": "2026-01-22",
+    "tags": {
+      "Project": [
+        "Alpha",
+        "Beta"
+      ],
+      "Status": [
+        "In Progress"
+      ],
+      "Priority": [
+        "Medium"
+      ]
+    }
+  },
+  {
+    "id": "evt-3",
+    "title": "Sprint planning",
+    "date": "2026-01-28",
+    "tags": {
+      "Project": [
+        "Gamma"
+      ],
+      "Status": [
+        "Not Started"
+      ],
+      "Priority": [
+        "High"
+      ]
+    }
+  },
+  {
+    "id": "evt-1769820802417",
+    "title": "New Evals",
+    "date": "2026-03-31",
+    "tags": {
+      "Project": [
+        "Alpha"
+      ],
+      "Status": [
+        "In Progress",
+        "Done"
+      ],
+      "Priority": [
+        "High"
+      ]
+    }
+  }
+]

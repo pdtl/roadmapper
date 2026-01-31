@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Roadmapper – Timeline</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --border: #334155;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent: #818cf8;
+      --accent-dim: #6366f1;
+      --accent-glow: rgba(129, 140, 248, 0.25);
+      --coral: #fb7185;
+      --teal: #2dd4bf;
+      --amber: #fbbf24;
+      --violet: #a78bfa;
+      --lane-height: 52px;
+      --day-width: 28px;
+      --header-height: 120px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "DM Sans", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow: hidden;
+      background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(129, 140, 248, 0.15), transparent);
+    }
+
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      flex-shrink: 0;
+      padding: 1rem 1.5rem;
+      background: linear-gradient(180deg, var(--surface) 0%, rgba(30, 41, 59, 0.97) 100%);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .header-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .header-group label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    select {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .btn {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%);
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(129, 140, 248, 0.3);
+    }
+
+    .btn:hover {
+      filter: brightness(1.1);
+      box-shadow: 0 4px 12px rgba(129, 140, 248, 0.4);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-muted);
+    }
+
+    .btn-ghost:hover {
+      color: var(--text);
+      background: var(--border);
+    }
+
+    /* Filters */
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .filter-cat {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .filter-cat span {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .filter-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .filter-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.25rem 0.6rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+
+    .filter-tag:hover {
+      border-color: var(--teal);
+      color: var(--text);
+      background: rgba(45, 212, 191, 0.08);
+    }
+
+    .filter-tag.active {
+      background: linear-gradient(135deg, var(--teal) 0%, #14b8a6 100%);
+      border-color: var(--teal);
+      color: var(--bg);
+      box-shadow: 0 2px 6px rgba(45, 212, 191, 0.35);
+    }
+
+    /* Timeline */
+    .timeline-wrap {
+      flex: 1;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .timeline {
+      flex: 1;
+      min-width: max-content;
+      position: relative;
+    }
+
+    .timeline-grid {
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid var(--border);
+    }
+
+    .timeline-header {
+      display: flex;
+      height: 40px;
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--surface);
+      z-index: 2;
+    }
+
+    .timeline-label-col {
+      width: 140px;
+      min-width: 140px;
+      flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      padding: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .timeline-dates {
+      flex: 1;
+      display: flex;
+      min-width: 0;
+    }
+
+    .timeline-date {
+      flex: 0 0 var(--day-width);
+      width: var(--day-width);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-align: center;
+      padding-top: 0.25rem;
+    }
+
+    .swimlane {
+      display: flex;
+      min-height: var(--lane-height);
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+
+    .swimlane-label {
+      width: 140px;
+      min-width: 140px;
+      flex-shrink: 0;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.85rem;
+      border-right: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    .swimlane:nth-child(2) .swimlane-label { border-left: 3px solid var(--violet); }
+    .swimlane:nth-child(3) .swimlane-label { border-left: 3px solid var(--teal); }
+    .swimlane:nth-child(4) .swimlane-label { border-left: 3px solid var(--coral); }
+    .swimlane:nth-child(5) .swimlane-label { border-left: 3px solid var(--amber); }
+    .swimlane:nth-child(6) .swimlane-label { border-left: 3px solid var(--accent); }
+    .swimlane:nth-child(n+7) .swimlane-label { border-left: 3px solid var(--text-muted); }
+
+    .swimlane-track {
+      flex: 1;
+      position: relative;
+      min-width: 0;
+    }
+
+    .event-block {
+      position: absolute;
+      top: 6px;
+      height: calc(var(--lane-height) - 12px);
+      min-width: 80px;
+      max-width: 180px;
+      padding: 0.35rem 0.5rem;
+      color: #fff;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .event-block:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+    }
+
+    .event-block.color-violet {
+      background: linear-gradient(135deg, var(--violet) 0%, #8b5cf6 100%);
+      box-shadow: 0 2px 8px rgba(167, 139, 250, 0.4);
+    }
+    .event-block.color-teal {
+      background: linear-gradient(135deg, var(--teal) 0%, #14b8a6 100%);
+      box-shadow: 0 2px 8px rgba(45, 212, 191, 0.4);
+    }
+    .event-block.color-coral {
+      background: linear-gradient(135deg, var(--coral) 0%, #f43f5e 100%);
+      box-shadow: 0 2px 8px rgba(251, 113, 133, 0.4);
+    }
+    .event-block.color-amber {
+      background: linear-gradient(135deg, var(--amber) 0%, #f59e0b 100%);
+      box-shadow: 0 2px 8px rgba(251, 191, 36, 0.4);
+    }
+    .event-block.color-accent {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%);
+      box-shadow: 0 2px 8px rgba(129, 140, 248, 0.4);
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s, visibility 0.2s;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      width: 90%;
+      max-width: 420px;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
+    }
+
+    .modal h2 {
+      margin: 0 0 1rem;
+      font-size: 1.1rem;
+    }
+
+    .form-row {
+      margin-bottom: 1rem;
+    }
+
+    .form-row label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 0.35rem;
+    }
+
+    .form-row input[type="text"],
+    .form-row input[type="date"] {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.9rem;
+    }
+
+    .form-row input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .form-tags {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .form-tag-cat {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 0.2rem;
+    }
+
+    .form-tag-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .form-tag-opt {
+      padding: 0.25rem 0.5rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+
+    .form-tag-opt:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .form-tag-opt.selected {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      margin-top: 1.25rem;
+    }
+
+    .empty-state {
+      padding: 3rem 1.5rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <h1>Roadmapper</h1>
+      <div class="header-group">
+        <label for="category-select">Swimlanes by</label>
+        <select id="category-select"></select>
+      </div>
+      <div class="filters" id="filters"></div>
+      <button type="button" class="btn" id="add-event-btn">Add event</button>
+    </header>
+
+    <div class="timeline-wrap">
+      <div class="timeline" id="timeline">
+        <div class="timeline-grid" id="timeline-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="event-modal">
+    <div class="modal">
+      <h2 id="modal-title">New event</h2>
+      <form id="event-form">
+        <input type="hidden" id="event-id" />
+        <div class="form-row">
+          <label for="event-title">Title</label>
+          <input type="text" id="event-title" required placeholder="Event title" />
+        </div>
+        <div class="form-row">
+          <label for="event-date">Date</label>
+          <input type="date" id="event-date" required />
+        </div>
+        <div class="form-row form-tags">
+          <label>Categories & tags</label>
+          <div id="event-tags-form"></div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" id="modal-cancel">Cancel</button>
+          <button type="submit" class="btn" id="modal-save">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      categories: {},
+      events: [],
+      swimlaneCategory: null,
+      activeFilters: {}
+    };
+
+    const categorySelect = document.getElementById("category-select");
+    const filtersEl = document.getElementById("filters");
+    const timelineGrid = document.getElementById("timeline-grid");
+    const addEventBtn = document.getElementById("add-event-btn");
+    const eventModal = document.getElementById("event-modal");
+    const eventForm = document.getElementById("event-form");
+    const eventIdInput = document.getElementById("event-id");
+    const eventTitleInput = document.getElementById("event-title");
+    const eventDateInput = document.getElementById("event-date");
+    const eventTagsForm = document.getElementById("event-tags-form");
+    const modalTitle = document.getElementById("modal-title");
+    const modalCancel = document.getElementById("modal-cancel");
+
+    function api(path, options = {}) {
+      return fetch(path, { ...options, headers: { "Content-Type": "application/json", ...options.headers } }).then(r => {
+        if (!r.ok) throw new Error(r.statusText);
+        return r.json();
+      });
+    }
+
+    async function loadCategories() {
+      state.categories = await api("/api/categories");
+      if (typeof state.categories !== "object") state.categories = {};
+    }
+
+    async function loadEvents() {
+      state.events = await api("/api/events");
+      if (!Array.isArray(state.events)) state.events = [];
+    }
+
+    async function saveEvents(events) {
+      state.events = await api("/api/events", { method: "PUT", body: JSON.stringify(events) });
+    }
+
+    function filteredEvents() {
+      const hasActive = Object.values(state.activeFilters).some(arr => arr && arr.length > 0);
+      if (!hasActive) return state.events;
+      return state.events.filter(evt => {
+        for (const [cat, selectedTags] of Object.entries(state.activeFilters)) {
+          if (!selectedTags || selectedTags.length === 0) continue;
+          const evtTags = (evt.tags && evt.tags[cat]) || [];
+          const match = selectedTags.some(t => evtTags.includes(t));
+          if (!match) return false;
+        }
+        return true;
+      });
+    }
+
+    function getDateRange(events) {
+      if (!events.length) {
+        const d = new Date();
+        const start = new Date(d);
+        start.setMonth(start.getMonth() - 1);
+        const end = new Date(d);
+        end.setMonth(end.getMonth() + 1);
+        return { start, end };
+      }
+      let min = Infinity, max = -Infinity;
+      events.forEach(evt => {
+        const t = new Date(evt.date).getTime();
+        if (t < min) min = t;
+        if (t > max) max = t;
+      });
+      const start = new Date(min);
+      const end = new Date(max);
+      start.setDate(start.getDate() - 7);
+      end.setDate(end.getDate() + 7);
+      return { start, end };
+    }
+
+    function dateToOffset(dateStr, range) {
+      const d = new Date(dateStr);
+      const t = d.getTime();
+      const start = range.start.getTime();
+      const end = range.end.getTime();
+      const total = end - start;
+      const pos = (t - start) / total;
+      return Math.max(0, Math.min(1, pos));
+    }
+
+    function renderCategorySelect() {
+      const cats = Object.keys(state.categories);
+      categorySelect.innerHTML = "";
+      if (!cats.length) {
+        categorySelect.innerHTML = "<option>No categories</option>";
+        return;
+      }
+      state.swimlaneCategory = state.swimlaneCategory || cats[0];
+      if (!state.categories[state.swimlaneCategory]) state.swimlaneCategory = cats[0];
+      cats.forEach(cat => {
+        const opt = document.createElement("option");
+        opt.value = cat;
+        opt.textContent = cat;
+        if (cat === state.swimlaneCategory) opt.selected = true;
+        categorySelect.appendChild(opt);
+      });
+    }
+
+    function renderFilters() {
+      filtersEl.innerHTML = "";
+      Object.entries(state.categories).forEach(([cat, tags]) => {
+        const catDiv = document.createElement("div");
+        catDiv.className = "filter-cat";
+        catDiv.innerHTML = `<span>${cat}:</span>`;
+        const tagsDiv = document.createElement("div");
+        tagsDiv.className = "filter-tags";
+        (tags || []).forEach(tag => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "filter-tag";
+          btn.textContent = tag;
+          const isActive = (state.activeFilters[cat] || []).includes(tag);
+          if (isActive) btn.classList.add("active");
+          btn.addEventListener("click", () => {
+            const current = state.activeFilters[cat] || [];
+            const next = current.includes(tag) ? current.filter(t => t !== tag) : [...current, tag];
+            state.activeFilters[cat] = next.length ? next : null;
+            renderFilters();
+            renderTimeline();
+          });
+          tagsDiv.appendChild(btn);
+        });
+        catDiv.appendChild(tagsDiv);
+        filtersEl.appendChild(catDiv);
+      });
+    }
+
+    function renderTimeline() {
+      const events = filteredEvents();
+      const range = getDateRange(events);
+      const cat = state.swimlaneCategory;
+      const tags = (state.categories[cat] || []);
+      const dayMs = 24 * 60 * 60 * 1000;
+      const totalDays = Math.ceil((range.end - range.start) / dayMs);
+      const dayWidth = 28;
+      const trackWidth = totalDays * dayWidth;
+      const weekWidth = 7 * dayWidth;
+
+      timelineGrid.innerHTML = "";
+
+      const header = document.createElement("div");
+      header.className = "timeline-header";
+      header.innerHTML = `<div class="timeline-label-col">${cat || "Category"}</div>`;
+      const datesDiv = document.createElement("div");
+      datesDiv.className = "timeline-dates";
+      datesDiv.style.width = `${trackWidth}px`;
+      for (let i = 0; i <= totalDays; i += 7) {
+        const d = new Date(range.start);
+        d.setDate(d.getDate() + i);
+        const span = document.createElement("div");
+        span.className = "timeline-date";
+        span.style.width = `${weekWidth}px`;
+        span.style.minWidth = `${weekWidth}px`;
+        span.textContent = `${d.getMonth() + 1}/${d.getDate()}`;
+        datesDiv.appendChild(span);
+      }
+      header.appendChild(datesDiv);
+      timelineGrid.appendChild(header);
+
+      if (!tags.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty-state";
+        empty.textContent = "No tags in this category. Add categories and tags in categories.yaml.";
+        timelineGrid.appendChild(empty);
+        return;
+      }
+
+      tags.forEach(tag => {
+        const lane = document.createElement("div");
+        lane.className = "swimlane";
+        lane.innerHTML = `
+          <div class="swimlane-label">${tag}</div>
+          <div class="swimlane-track" style="width: ${trackWidth}px;"></div>
+        `;
+        const track = lane.querySelector(".swimlane-track");
+        const laneEvents = events.filter(evt => (evt.tags && evt.tags[cat] || []).includes(tag));
+        laneEvents.forEach(evt => {
+          const pos = dateToOffset(evt.date, range);
+          const left = pos * (trackWidth - 90);
+          const block = document.createElement("div");
+          const colors = ["color-violet", "color-teal", "color-coral", "color-amber", "color-accent"];
+          const colorIdx = Math.abs((evt.id || "").split("").reduce((a, c) => ((a << 5) - a) + c.charCodeAt(0), 0)) % colors.length;
+          block.className = "event-block " + colors[colorIdx];
+          block.textContent = evt.title;
+          block.style.left = `${left}px`;
+          block.title = `${evt.title} – ${evt.date}`;
+          block.addEventListener("click", () => openEditEvent(evt));
+          track.appendChild(block);
+        });
+        timelineGrid.appendChild(lane);
+      });
+    }
+
+    function openAddEvent() {
+      eventIdInput.value = "";
+      eventTitleInput.value = "";
+      eventDateInput.value = new Date().toISOString().slice(0, 10);
+      modalTitle.textContent = "New event";
+      renderEventTagsForm({});
+      eventModal.classList.add("open");
+    }
+
+    function openEditEvent(evt) {
+      eventIdInput.value = evt.id;
+      eventTitleInput.value = evt.title;
+      eventDateInput.value = evt.date;
+      modalTitle.textContent = "Edit event";
+      renderEventTagsForm(evt.tags || {});
+      eventModal.classList.add("open");
+    }
+
+    function renderEventTagsForm(selectedTags) {
+      eventTagsForm.innerHTML = "";
+      Object.entries(state.categories).forEach(([cat, tags]) => {
+        const catLabel = document.createElement("div");
+        catLabel.className = "form-tag-cat";
+        catLabel.textContent = cat;
+        eventTagsForm.appendChild(catLabel);
+        const opts = document.createElement("div");
+        opts.className = "form-tag-options";
+        (tags || []).forEach(tag => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "form-tag-opt";
+          btn.textContent = tag;
+          const sel = (selectedTags[cat] || []).includes(tag);
+          if (sel) btn.classList.add("selected");
+          btn.addEventListener("click", () => {
+            btn.classList.toggle("selected");
+          });
+          opts.appendChild(btn);
+        });
+        eventTagsForm.appendChild(opts);
+      });
+    }
+
+    function getFormTags() {
+      const tags = {};
+      const catLabels = eventTagsForm.querySelectorAll(".form-tag-cat");
+      const optGroups = eventTagsForm.querySelectorAll(".form-tag-options");
+      catLabels.forEach((label, i) => {
+        const cat = label.textContent.trim();
+        const opts = optGroups[i];
+        if (!opts) return;
+        const selected = [...opts.querySelectorAll(".form-tag-opt.selected")].map(el => el.textContent.trim());
+        if (selected.length) tags[cat] = selected;
+      });
+      return tags;
+    }
+
+    eventForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const id = eventIdInput.value.trim();
+      const title = eventTitleInput.value.trim();
+      const date = eventDateInput.value;
+      const tags = getFormTags();
+      let events = [...state.events];
+      if (id) {
+        const idx = events.findIndex(evt => evt.id === id);
+        if (idx >= 0) {
+          events[idx] = { ...events[idx], title, date, tags };
+        }
+      } else {
+        events.push({ id: "evt-" + Date.now(), title, date, tags });
+      }
+      await saveEvents(events);
+      eventModal.classList.remove("open");
+      renderTimeline();
+    });
+
+    modalCancel.addEventListener("click", () => eventModal.classList.remove("open"));
+    eventModal.addEventListener("click", (e) => { if (e.target === eventModal) eventModal.classList.remove("open"); });
+
+    categorySelect.addEventListener("change", () => {
+      state.swimlaneCategory = categorySelect.value;
+      renderTimeline();
+    });
+
+    addEventBtn.addEventListener("click", openAddEvent);
+
+    (async function init() {
+      await loadCategories();
+      await loadEvents();
+      renderCategorySelect();
+      renderFilters();
+      renderTimeline();
+    })();
+  </script>
+</body>
+</html>

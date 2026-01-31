@@ -1,0 +1,14 @@
+{
+  "name": "roadmapper",
+  "version": "1.0.0",
+  "description": "Timeline event tracker with swimlane layout",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "js-yaml": "^4.1.0"
+  }
+}

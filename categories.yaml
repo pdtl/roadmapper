@@ -1,0 +1,17 @@
+# Categories and their tags for timeline events.
+# Each category becomes a swimlane grouping option.
+# Tags under a category become individual swimlanes when that category is selected.
+
+categories:
+  Project:
+    - Alpha
+    - Beta
+    - Gamma
+  Status:
+    - Not Started
+    - In Progress
+    - Done
+  Priority:
+    - High
+    - Medium
+    - Low
