@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Roadmapper – Timeline</title>
   <style>
-    :root {
+    :root,
+    html[data-theme="dark"] {
       --bg: #0f172a;
       --surface: #1e293b;
       --border: #334155;
@@ -21,6 +22,27 @@
       --lane-height: 52px;
       --day-width: 28px;
       --header-height: 120px;
+      --bg-gradient: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(129, 140, 248, 0.15), transparent);
+      --modal-shadow: 0 25px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
+      --header-gradient: linear-gradient(180deg, var(--surface) 0%, rgba(30, 41, 59, 0.97) 100%);
+    }
+
+    html[data-theme="light"] {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #6366f1;
+      --accent-dim: #4f46e5;
+      --accent-glow: rgba(99, 102, 241, 0.2);
+      --coral: #e11d48;
+      --teal: #0d9488;
+      --amber: #d97706;
+      --violet: #7c3aed;
+      --bg-gradient: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.12), transparent);
+      --modal-shadow: 0 25px 50px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
+      --header-gradient: linear-gradient(180deg, var(--surface) 0%, rgba(248, 250, 252, 0.97) 100%);
     }
 
     * {
@@ -34,7 +56,7 @@
       color: var(--text);
       min-height: 100vh;
       overflow: hidden;
-      background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(129, 140, 248, 0.15), transparent);
+      background-image: var(--bg-gradient);
     }
 
     .app {
@@ -47,11 +69,11 @@
     .header {
       flex-shrink: 0;
       padding: 1rem 1.5rem;
-      background: linear-gradient(180deg, var(--surface) 0%, rgba(30, 41, 59, 0.97) 100%);
+      background: var(--header-gradient);
       border-bottom: 1px solid var(--border);
       display: flex;
-      flex-wrap: wrap;
       align-items: center;
+      justify-content: space-between;
       gap: 1rem;
     }
 
@@ -62,17 +84,40 @@
       color: var(--text);
     }
 
-    .header-group {
+    .main {
       display: flex;
-      align-items: center;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      flex-shrink: 0;
+      width: 220px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 1rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .sidebar-group {
+      display: flex;
+      flex-direction: column;
       gap: 0.5rem;
     }
 
-    .header-group label {
-      font-size: 0.8rem;
+    .sidebar-group label {
+      font-size: 0.75rem;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.05em;
+    }
+
+    .sidebar select {
+      width: 100%;
     }
 
     select {
@@ -118,23 +163,24 @@
       background: var(--border);
     }
 
-    /* Filters */
+    /* Filters (in left sidebar) */
     .filters {
       display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 0.75rem;
+      flex-direction: column;
+      gap: 1rem;
     }
 
     .filter-cat {
       display: flex;
-      align-items: center;
-      gap: 0.5rem;
+      flex-direction: column;
+      gap: 0.4rem;
     }
 
     .filter-cat span {
       font-size: 0.75rem;
       color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
     }
 
     .filter-tags {
@@ -329,7 +375,7 @@
       padding: 1.5rem;
       width: 90%;
       max-width: 420px;
-      box-shadow: 0 25px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
+      box-shadow: var(--modal-shadow);
     }
 
     .modal h2 {
@@ -416,23 +462,70 @@
       color: var(--text-muted);
       font-size: 0.9rem;
     }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2px;
+      gap: 0;
+    }
+
+    .theme-toggle button {
+      padding: 0.35rem 0.65rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      background: transparent;
+      color: var(--text-muted);
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .theme-toggle button:hover {
+      color: var(--text);
+    }
+
+    .theme-toggle button.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
   </style>
 </head>
 <body>
   <div class="app">
     <header class="header">
       <h1>Roadmapper</h1>
-      <div class="header-group">
-        <label for="category-select">Swimlanes by</label>
-        <select id="category-select"></select>
+      <div class="header-actions">
+        <div class="theme-toggle" role="group" aria-label="Theme">
+          <button type="button" id="theme-light" aria-pressed="false">Light</button>
+          <button type="button" id="theme-dark" aria-pressed="true">Dark</button>
+        </div>
+        <button type="button" class="btn" id="add-event-btn">Add event</button>
       </div>
-      <div class="filters" id="filters"></div>
-      <button type="button" class="btn" id="add-event-btn">Add event</button>
     </header>
 
-    <div class="timeline-wrap">
-      <div class="timeline" id="timeline">
-        <div class="timeline-grid" id="timeline-grid"></div>
+    <div class="main">
+      <aside class="sidebar">
+        <div class="sidebar-group">
+          <label for="category-select">Swimlanes by</label>
+          <select id="category-select"></select>
+        </div>
+        <div class="filters" id="filters"></div>
+      </aside>
+      <div class="timeline-wrap">
+        <div class="timeline" id="timeline">
+          <div class="timeline-grid" id="timeline-grid"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -467,7 +560,8 @@
       categories: {},
       events: [],
       swimlaneCategory: null,
-      activeFilters: {}
+      activeFilters: {},
+      theme: "dark"
     };
 
     const categorySelect = document.getElementById("category-select");
@@ -482,6 +576,8 @@
     const eventTagsForm = document.getElementById("event-tags-form");
     const modalTitle = document.getElementById("modal-title");
     const modalCancel = document.getElementById("modal-cancel");
+    const themeLightBtn = document.getElementById("theme-light");
+    const themeDarkBtn = document.getElementById("theme-dark");
 
     function api(path, options = {}) {
       return fetch(path, { ...options, headers: { "Content-Type": "application/json", ...options.headers } }).then(r => {
@@ -502,6 +598,28 @@
 
     async function saveEvents(events) {
       state.events = await api("/api/events", { method: "PUT", body: JSON.stringify(events) });
+    }
+
+    async function loadConfig() {
+      try {
+        const config = await api("/api/config");
+        state.theme = (config.theme === "light" || config.theme === "dark") ? config.theme : "dark";
+      } catch {
+        state.theme = "dark";
+      }
+    }
+
+    async function saveConfig(config) {
+      await api("/api/config", { method: "PUT", body: JSON.stringify(config) });
+    }
+
+    function applyTheme(theme) {
+      state.theme = theme;
+      document.documentElement.setAttribute("data-theme", theme);
+      themeLightBtn.classList.toggle("active", theme === "light");
+      themeDarkBtn.classList.toggle("active", theme === "dark");
+      themeLightBtn.setAttribute("aria-pressed", theme === "light");
+      themeDarkBtn.setAttribute("aria-pressed", theme === "dark");
     }
 
     function filteredEvents() {
@@ -750,7 +868,28 @@
 
     addEventBtn.addEventListener("click", openAddEvent);
 
+    themeLightBtn.addEventListener("click", async () => {
+      applyTheme("light");
+      try {
+        const config = await api("/api/config");
+        await saveConfig({ ...config, theme: "light" });
+      } catch {
+        await saveConfig({ theme: "light" });
+      }
+    });
+    themeDarkBtn.addEventListener("click", async () => {
+      applyTheme("dark");
+      try {
+        const config = await api("/api/config");
+        await saveConfig({ ...config, theme: "dark" });
+      } catch {
+        await saveConfig({ theme: "dark" });
+      }
+    });
+
     (async function init() {
+      await loadConfig();
+      applyTheme(state.theme);
       await loadCategories();
       await loadEvents();
       renderCategorySelect();

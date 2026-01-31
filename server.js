@@ -13,6 +13,7 @@ app.use(express.static(__dirname));
 
 const categoriesPath = path.join(__dirname, "categories.yaml");
 const eventsPath = path.join(__dirname, "events.json");
+const configPath = path.join(__dirname, "config.json");
 
 app.get("/api/categories", async (_req, res) => {
   try {
@@ -44,6 +45,31 @@ app.put("/api/events", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to write events" });
+  }
+});
+
+app.get("/api/config", async (_req, res) => {
+  try {
+    const raw = await fs.readFile(configPath, "utf8");
+    const data = JSON.parse(raw);
+    res.json(data);
+  } catch (err) {
+    if (err.code === "ENOENT") {
+      return res.json({ theme: "dark" });
+    }
+    console.error(err);
+    res.status(500).json({ error: "Failed to read config" });
+  }
+});
+
+app.put("/api/config", async (req, res) => {
+  try {
+    const config = typeof req.body === "object" && req.body !== null ? req.body : {};
+    await fs.writeFile(configPath, JSON.stringify(config, null, 2), "utf8");
+    res.json(config);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to write config" });
   }
 });
 
