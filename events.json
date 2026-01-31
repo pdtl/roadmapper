@@ -4,14 +4,14 @@
     "title": "Kickoff meeting",
     "date": "2026-01-15",
     "tags": {
-      "Project": [
-        "Alpha"
+      "Level": [
+        "UME"
       ],
-      "Status": [
-        "Done"
+      "App": [
+        "MyGrades"
       ],
-      "Priority": [
-        "High"
+      "School": [
+        "GSOM"
       ]
     }
   },
@@ -20,15 +20,15 @@
     "title": "Design review",
     "date": "2026-01-22",
     "tags": {
-      "Project": [
-        "Alpha",
-        "Beta"
+      "Level": [
+        "UME",
+        "GME"
       ],
-      "Status": [
-        "In Progress"
+      "App": [
+        "MyFeedback"
       ],
-      "Priority": [
-        "Medium"
+      "School": [
+        "GLISOM"
       ]
     }
   },
@@ -36,32 +36,18 @@
     "id": "evt-3",
     "title": "Sprint planning",
     "date": "2026-01-28",
-    "tags": {
-      "Project": [
-        "Gamma"
-      ],
-      "Status": [
-        "Not Started"
-      ],
-      "Priority": [
-        "High"
-      ]
-    }
+    "tags": {}
   },
   {
     "id": "evt-1769820802417",
     "title": "New Evals",
     "date": "2026-03-31",
     "tags": {
-      "Project": [
-        "Alpha"
+      "Level": [
+        "UME"
       ],
-      "Status": [
-        "In Progress",
-        "Done"
-      ],
-      "Priority": [
-        "High"
+      "App": [
+        "MyGrades"
       ]
     }
   },
@@ -70,14 +56,8 @@
     "title": "Test Event",
     "date": "2026-01-23",
     "tags": {
-      "Project": [
-        "Alpha"
-      ],
-      "Status": [
-        "Not Started"
-      ],
-      "Priority": [
-        "Medium"
+      "Level": [
+        "UME"
       ]
     }
   }

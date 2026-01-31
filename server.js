@@ -26,6 +26,23 @@ app.get("/api/categories", async (_req, res) => {
   }
 });
 
+app.put("/api/categories", async (req, res) => {
+  try {
+    const categories = typeof req.body === "object" && req.body !== null ? req.body : {};
+    const preamble = `# Categories and their tags for timeline events.
+# Each category becomes a swimlane grouping option.
+# Tags under a category become individual swimlanes when that category is selected.
+
+`;
+    const yamlOut = preamble + yaml.dump({ categories }, { lineWidth: -1 });
+    await fs.writeFile(categoriesPath, yamlOut, "utf8");
+    res.json(categories);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to write categories" });
+  }
+});
+
 app.get("/api/events", async (_req, res) => {
   try {
     const raw = await fs.readFile(eventsPath, "utf8");

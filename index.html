@@ -537,6 +537,122 @@
       margin-top: 1.25rem;
     }
 
+    .modal-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin: -0.5rem 0 1rem;
+    }
+
+    .modal-categories {
+      max-width: 520px;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+
+    .categories-editor {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .cat-block {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+    }
+
+    .cat-block-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .cat-block-header input {
+      flex: 1;
+      padding: 0.35rem 0.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .cat-block-header input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .cat-block-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      align-items: center;
+    }
+
+    .cat-tag-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.2rem;
+      padding: 0.2rem 0.4rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 0.8rem;
+    }
+
+    .cat-tag-row input {
+      width: 4.5em;
+      padding: 0.15rem 0.25rem;
+      background: var(--bg);
+      border: 1px solid transparent;
+      border-radius: 4px;
+      color: var(--text);
+      font-size: inherit;
+    }
+
+    .cat-tag-row input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .cat-tag-remove,
+    .cat-block-remove {
+      padding: 0.15rem 0.35rem;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      border-radius: 4px;
+    }
+
+    .cat-tag-remove:hover,
+    .cat-block-remove:hover {
+      color: var(--coral);
+      background: rgba(251, 113, 133, 0.15);
+    }
+
+    .btn-add-tag,
+    .btn-add-category {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.8rem;
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .btn-add-tag:hover,
+    .btn-add-category:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
     .empty-state {
       padding: 3rem 1.5rem;
       text-align: center;
@@ -591,6 +707,7 @@
           <button type="button" id="theme-light" aria-pressed="false">Light</button>
           <button type="button" id="theme-dark" aria-pressed="true">Dark</button>
         </div>
+        <button type="button" class="btn btn-ghost" id="edit-categories-btn" title="Edit categories and tags">Categories</button>
         <button type="button" class="btn" id="add-event-btn">Add event</button>
       </div>
     </header>
@@ -620,6 +737,18 @@
         <div class="timeline" id="timeline">
           <div class="timeline-grid" id="timeline-grid"></div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="categories-modal">
+    <div class="modal modal-categories">
+      <h2>Edit categories &amp; tags</h2>
+      <p class="modal-desc">Rename categories or tags; event data will be updated to match.</p>
+      <div id="categories-editor" class="categories-editor"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="categories-modal-cancel">Cancel</button>
+        <button type="button" class="btn" id="categories-modal-save">Save</button>
       </div>
     </div>
   </div>
@@ -670,6 +799,11 @@
     const timelineWrap = document.querySelector(".timeline-wrap");
     const LABEL_COL_WIDTH = 160;
     const addEventBtn = document.getElementById("add-event-btn");
+    const editCategoriesBtn = document.getElementById("edit-categories-btn");
+    const categoriesModal = document.getElementById("categories-modal");
+    const categoriesEditor = document.getElementById("categories-editor");
+    const categoriesModalCancel = document.getElementById("categories-modal-cancel");
+    const categoriesModalSave = document.getElementById("categories-modal-save");
     const eventModal = document.getElementById("event-modal");
     const eventForm = document.getElementById("event-form");
     const eventIdInput = document.getElementById("event-id");
@@ -1051,6 +1185,197 @@
       return tags;
     }
 
+    function renderCategoriesEditor() {
+      categoriesEditor.innerHTML = "";
+      const cats = Object.entries(state.categories).map(([key, tags]) => ({ key, name: key, tags: (tags || []).map(t => ({ key: t, name: t })) }));
+      cats.forEach((cat) => {
+        const block = document.createElement("div");
+        block.className = "cat-block";
+        block.dataset.key = cat.key;
+        const header = document.createElement("div");
+        header.className = "cat-block-header";
+        const nameInput = document.createElement("input");
+        nameInput.type = "text";
+        nameInput.value = cat.name;
+        nameInput.placeholder = "Category name";
+        const removeCatBtn = document.createElement("button");
+        removeCatBtn.type = "button";
+        removeCatBtn.className = "cat-block-remove";
+        removeCatBtn.textContent = "×";
+        removeCatBtn.title = "Remove category";
+        removeCatBtn.addEventListener("click", () => { block.remove(); });
+        header.appendChild(nameInput);
+        header.appendChild(removeCatBtn);
+        block.appendChild(header);
+        const tagsDiv = document.createElement("div");
+        tagsDiv.className = "cat-block-tags";
+        (cat.tags || []).forEach((tag) => {
+          const row = document.createElement("span");
+          row.className = "cat-tag-row";
+          row.dataset.tagKey = tag.key;
+          const tagInput = document.createElement("input");
+          tagInput.type = "text";
+          tagInput.value = tag.name;
+          tagInput.placeholder = "Tag";
+          const removeTagBtn = document.createElement("button");
+          removeTagBtn.type = "button";
+          removeTagBtn.className = "cat-tag-remove";
+          removeTagBtn.textContent = "×";
+          removeTagBtn.addEventListener("click", () => row.remove());
+          row.appendChild(tagInput);
+          row.appendChild(removeTagBtn);
+          tagsDiv.appendChild(row);
+        });
+        const addTagBtn = document.createElement("button");
+        addTagBtn.type = "button";
+        addTagBtn.className = "btn-add-tag";
+        addTagBtn.textContent = "+ Tag";
+        addTagBtn.addEventListener("click", () => {
+          const row = document.createElement("span");
+          row.className = "cat-tag-row";
+          row.dataset.tagKey = "new-" + Date.now();
+          const tagInput = document.createElement("input");
+          tagInput.type = "text";
+          tagInput.placeholder = "Tag";
+          const removeTagBtn = document.createElement("button");
+          removeTagBtn.type = "button";
+          removeTagBtn.className = "cat-tag-remove";
+          removeTagBtn.textContent = "×";
+          removeTagBtn.addEventListener("click", () => row.remove());
+          row.appendChild(tagInput);
+          row.appendChild(removeTagBtn);
+          tagsDiv.insertBefore(row, addTagBtn);
+        });
+        tagsDiv.appendChild(addTagBtn);
+        block.appendChild(tagsDiv);
+        categoriesEditor.appendChild(block);
+      });
+      const addCatBtn = document.createElement("button");
+      addCatBtn.type = "button";
+      addCatBtn.className = "btn-add-category";
+      addCatBtn.textContent = "+ Category";
+      addCatBtn.addEventListener("click", () => {
+        const key = "new-" + Date.now();
+        const block = document.createElement("div");
+        block.className = "cat-block";
+        block.dataset.key = key;
+        const header = document.createElement("div");
+        header.className = "cat-block-header";
+        const nameInput = document.createElement("input");
+        nameInput.type = "text";
+        nameInput.placeholder = "Category name";
+        const removeCatBtn = document.createElement("button");
+        removeCatBtn.type = "button";
+        removeCatBtn.className = "cat-block-remove";
+        removeCatBtn.textContent = "×";
+        removeCatBtn.addEventListener("click", () => block.remove());
+        header.appendChild(nameInput);
+        header.appendChild(removeCatBtn);
+        block.appendChild(header);
+        const tagsDiv = document.createElement("div");
+        tagsDiv.className = "cat-block-tags";
+        const addTagBtn = document.createElement("button");
+        addTagBtn.type = "button";
+        addTagBtn.className = "btn-add-tag";
+        addTagBtn.textContent = "+ Tag";
+        addTagBtn.addEventListener("click", () => {
+          const row = document.createElement("span");
+          row.className = "cat-tag-row";
+          row.dataset.tagKey = "new-" + Date.now();
+          const tagInput = document.createElement("input");
+          tagInput.type = "text";
+          tagInput.placeholder = "Tag";
+          const removeTagBtn = document.createElement("button");
+          removeTagBtn.type = "button";
+          removeTagBtn.className = "cat-tag-remove";
+          removeTagBtn.textContent = "×";
+          removeTagBtn.addEventListener("click", () => row.remove());
+          row.appendChild(tagInput);
+          row.appendChild(removeTagBtn);
+          tagsDiv.insertBefore(row, addTagBtn);
+        });
+        tagsDiv.appendChild(addTagBtn);
+        block.appendChild(tagsDiv);
+        categoriesEditor.insertBefore(block, addCatBtn);
+      });
+      categoriesEditor.appendChild(addCatBtn);
+    }
+
+    function getCategoriesFromEditor() {
+      const newCategories = {};
+      const categoryMap = {};
+      const tagMap = {};
+      const blocks = categoriesEditor.querySelectorAll(".cat-block");
+      blocks.forEach(block => {
+        const oldKey = block.dataset.key;
+        const nameInput = block.querySelector(".cat-block-header input");
+        const catName = (nameInput && nameInput.value.trim()) || oldKey;
+        const tagRows = block.querySelectorAll(".cat-tag-row");
+        const tagNames = [];
+        tagMap[oldKey] = {};
+        tagRows.forEach(row => {
+          const tagKey = row.dataset.tagKey;
+          const tagInput = row.querySelector("input");
+          const tagName = (tagInput && tagInput.value.trim()) || tagKey;
+          tagNames.push(tagName);
+          tagMap[oldKey][tagKey] = tagName;
+        });
+        newCategories[catName] = tagNames;
+        categoryMap[oldKey] = catName;
+      });
+      return { newCategories, categoryMap, tagMap };
+    }
+
+    function applyCategoryAndTagRenamesToEvents(events, categoryMap, tagMap, newCategories) {
+      const validNewCategories = new Set(Object.keys(newCategories));
+      return events.map(evt => {
+        const newTags = {};
+        for (const [oldCat, tagArr] of Object.entries(evt.tags || {})) {
+          const newCat = categoryMap[oldCat] ?? oldCat;
+          if (!validNewCategories.has(newCat)) continue;
+          const mapped = (tagArr || []).map(t => tagMap[oldCat]?.[t] ?? t).filter(t => newCategories[newCat]?.includes(t));
+          if (mapped.length) newTags[newCat] = mapped;
+        }
+        return { ...evt, tags: newTags };
+      });
+    }
+
+    async function saveCategories(newCategories) {
+      await api("/api/categories", { method: "PUT", body: JSON.stringify(newCategories) });
+    }
+
+    function openCategoriesModal() {
+      renderCategoriesEditor();
+      categoriesModal.classList.add("open");
+    }
+
+    async function saveCategoriesModal() {
+      try {
+        const { newCategories, categoryMap, tagMap } = getCategoriesFromEditor();
+        const names = Object.keys(newCategories).filter(cat => cat && cat.trim());
+        if (names.length !== Object.keys(newCategories).length) {
+          alert("Category names cannot be empty.");
+          return;
+        }
+        if (names.length !== new Set(names).size) {
+          alert("Category names must be unique.");
+          return;
+        }
+        const updatedEvents = applyCategoryAndTagRenamesToEvents(state.events, categoryMap, tagMap, newCategories);
+        await saveCategories(newCategories);
+        await saveEvents(updatedEvents);
+        state.events = updatedEvents;
+        state.categories = newCategories;
+        categoriesModal.classList.remove("open");
+        renderCategorySelect();
+        renderFilters();
+        renderTimeline();
+      } catch (err) {
+        console.error("Save categories error:", err);
+        alert("Failed to save: " + (err.message || String(err)));
+      }
+    }
+
     eventForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       const id = eventIdInput.value.trim();
@@ -1115,6 +1440,11 @@
     });
 
     addEventBtn.addEventListener("click", openAddEvent);
+
+    editCategoriesBtn.addEventListener("click", openCategoriesModal);
+    categoriesModalCancel.addEventListener("click", () => categoriesModal.classList.remove("open"));
+    categoriesModal.addEventListener("click", (e) => { if (e.target === categoriesModal) categoriesModal.classList.remove("open"); });
+    categoriesModalSave.addEventListener("click", () => saveCategoriesModal());
 
     themeLightBtn.addEventListener("click", async () => {
       applyTheme("light");
