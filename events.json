@@ -40,16 +40,21 @@
   },
   {
     "id": "evt-1769820802417",
-    "title": "New Evals",
+    "title": "GME HR Feeds 1of7",
     "date": "2026-03-31",
     "tags": {
       "Level": [
-        "UME"
+        "GME"
       ],
       "App": [
-        "MyGrades"
+        "New Innovations"
+      ],
+      "School": [
+        "GSOM",
+        "GLISOM"
       ]
-    }
+    },
+    "notes": "The integration for In Rotators will be migrated to use databricks"
   },
   {
     "id": "evt-1769821958248",
@@ -60,5 +65,97 @@
         "UME"
       ]
     }
+  },
+  {
+    "id": "evt-1770041968876",
+    "title": "Faculty CV MVP",
+    "date": "2026-03-15",
+    "tags": {
+      "Level": [
+        "Faculty"
+      ],
+      "App": [
+        "Faculty CV"
+      ],
+      "School": [
+        "GSOM",
+        "GLISOM"
+      ]
+    },
+    "notes": "The ability to automatically reformat CV entries/text snippets"
+  },
+  {
+    "id": "evt-1770042179104",
+    "title": "VP Demo for GLISOM",
+    "date": "2026-02-05",
+    "tags": {
+      "Level": [
+        "UME"
+      ],
+      "App": [
+        "Virtual Patient"
+      ],
+      "School": [
+        "GLISOM"
+      ]
+    },
+    "notes": "Let GLISOM team test out VP and provide feedback"
+  },
+  {
+    "id": "evt-1770042476950",
+    "title": "New Dash. Templates",
+    "date": "2026-04-01",
+    "tags": {
+      "Level": [
+        "UME",
+        "GME",
+        "Faculty"
+      ],
+      "App": [
+        "Dashboards"
+      ],
+      "School": [
+        "GSOM",
+        "GLISOM"
+      ]
+    },
+    "notes": "The new templates for Edu dashboards will be in place and any new content will use these templates"
+  },
+  {
+    "id": "evt-1770042915991",
+    "title": "Student Address Sync",
+    "date": "2026-02-28",
+    "tags": {
+      "Level": [
+        "UME"
+      ],
+      "App": [
+        "Other"
+      ],
+      "School": [
+        "GSOM",
+        "GLISOM"
+      ]
+    },
+    "notes": "Mailing addresses will Sync from Albert to NYULH PeopleSoft"
+  },
+  {
+    "id": "evt-1770064049405",
+    "title": "Data Migration Pt 1",
+    "date": "2026-03-17",
+    "tags": {
+      "Level": [
+        "UME",
+        "GME"
+      ],
+      "App": [
+        "MyFeedback"
+      ],
+      "School": [
+        "GSOM",
+        "GLISOM"
+      ]
+    },
+    "notes": "MyFeedback (evaluation) data will be migrated and modeled."
   }
 ]
